@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="ProjectModuleManager">
+    <modules>
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/GuuLang.iml" filepath="$PROJECT_DIR$/.idea/modules/GuuLang.iml" group="GuuLang" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/GuuLang_main.iml" filepath="$PROJECT_DIR$/.idea/modules/GuuLang_main.iml" group="GuuLang" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/GuuLang_test.iml" filepath="$PROJECT_DIR$/.idea/modules/GuuLang_test.iml" group="GuuLang" />
+    </modules>
+  </component>
+</project>
