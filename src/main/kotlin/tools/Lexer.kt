@@ -1,15 +1,9 @@
 package tools
 
-import tools.tokens.IdentifierToken
-import tools.tokens.KeywordToken
-import tools.tokens.Token
-import tools.tokens.ValueToken
-
 class Lexer {
 
-    val keywords = listOf("print", "sub", "set", "call")
-    var identifiers = listOf("a, hello, b, c, d")
-    var tokens = ArrayList<Token>()
+    private val keywords = listOf("print", "sub", "set", "call")
+    private var tokens = mutableListOf<Token>()
 
 
     constructor(expression : String)
@@ -17,7 +11,20 @@ class Lexer {
         tokenize(expression)
     }
 
-    fun tokenize(expression : String) : List<Token>
+    fun getNextToken() : Token
+    {
+        if(tokens.size == 0)
+        {
+            return Token("\n", TokenType.EOL)
+        }
+
+        val token = tokens.first()
+        tokens.removeAt(0)
+
+        return token
+    }
+
+    private fun tokenize(expression : String) : List<Token>
     {
 
         val splittedArray = expression
@@ -33,11 +40,11 @@ class Lexer {
 
             when {
 
-                keywords.contains(it) -> tokens.add(KeywordToken(it))
+                keywords.contains(it) -> tokens.add(Token(it, TokenType.KEYWORD))
 
-                it.toIntOrNull() == null -> tokens.add(IdentifierToken(it))
+                it.toIntOrNull() == null -> tokens.add(Token(it, TokenType.IDENTIFIER))
 
-                else -> tokens.add(ValueToken(it))
+                else -> tokens.add(Token(it, TokenType.VALUE))
             }
 
         }
@@ -45,9 +52,10 @@ class Lexer {
 
     }
 
-
-    fun getTokens() : List<Token>
+    fun getTokensCount() : Int
     {
-        return tokens
+        return tokens.size
     }
+
+
 }

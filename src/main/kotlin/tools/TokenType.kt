@@ -3,6 +3,6 @@ package tools
 enum class TokenType {
     KEYWORD,
     IDENTIFIER,
-    OPERATOR,
-    VALUE
+    VALUE,
+    EOL
 }

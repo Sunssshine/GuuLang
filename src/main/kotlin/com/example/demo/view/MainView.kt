@@ -24,7 +24,7 @@ class MainView : View("Hello TornadoFX") {
                 textArea.text.split('\n').forEach {
                     if(it.isNotEmpty())
                     {
-                        ExpressionParser(Lexer(it).getTokens())
+                        Lexer(it).tokenize(it)
                     }
                 }
                 println("Expression parse done")
