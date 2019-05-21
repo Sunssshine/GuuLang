@@ -64,21 +64,21 @@
 ---
 
 # Пример программы на языке Guu
-sub hello&nbsp
-    print somevar&nbsp
-    set somevar 42&nbsp
-    print somevar&nbsp
-    print wtf&nbsp
-&nbsp
-sub main&nbsp
-    set somevar 13&nbsp
-    call hello&nbsp
-    set smth 422&nbsp
-    print 1337&nbsp
-    call wtf&nbsp
-&nbsp
-sub wtf&nbsp
-    call hello&nbsp
+sub hello\
+    print somevar\
+    set somevar 42\
+    print somevar\
+    print wtf\
+\
+sub main\
+    set somevar 13\
+    call hello\
+    set smth 422\
+    print 1337\
+    call wtf\
+\
+sub wtf\
+    call hello
 
 # Известные проблемы
 * Рекурсия работает слишком хорошо, нужно запускать выполнение в корутине, но я не успел :с
