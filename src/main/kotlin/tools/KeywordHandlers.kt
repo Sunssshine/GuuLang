@@ -8,9 +8,13 @@ fun printHandler(argument : Token, env : Environment)
             println(
                     env.resolveVariable(argument.value)
             )
+            env.addLineToExecutionLog(env.resolveVariable(argument.value).toString())
         }
 
-        TokenType.VALUE->{println(argument.value)}
+        TokenType.VALUE->{
+            println(argument.value)
+            env.addLineToExecutionLog(argument.value)
+        }
         else->{
             throw Exception("Expected [IDENTIFIER] or [VALUE] but here is [${argument.type}]")
         }

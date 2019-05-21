@@ -10,6 +10,9 @@ class Environment {
     private var functions = hashMapOf<String, Int>()   // fun name -> fun str
     private var callStack = Stack<Int>()
 
+    private var errorLog = ""
+    private var executionLog = ""
+
     private var instructionPointer = 0
 
     private val instructions : List<String>
@@ -31,6 +34,7 @@ class Environment {
         catch(e : Exception)
         {
             println(e.message + " (line #${instructionPointer+1})")
+            addLineToErrLog(e.message + " (line #${instructionPointer+1})")
             isFinished = true
             return
         }
@@ -46,10 +50,31 @@ class Environment {
         }
         catch (e : Exception)
         {
-            println(e.message)
+            println(e.message + " (line #${instructionPointer+1})")
+            addLineToErrLog(e.message + " (line #${instructionPointer+1})")
             isFinished = true
             return
         }
+    }
+
+    fun addLineToExecutionLog(line : String)
+    {
+        executionLog += line + '\n'
+    }
+
+    fun getExecLog() : String
+    {
+        return executionLog
+    }
+
+    fun getErrLog() : String
+    {
+        return errorLog
+    }
+
+    private fun addLineToErrLog(line : String)
+    {
+        errorLog += line + '\n'
     }
 
     private fun tryIncInstructionPointer()
@@ -75,8 +100,10 @@ class Environment {
         catch(e : Exception)
         {
             println(e.message + " (line #${instructionPointer+1})")
+            addLineToErrLog(e.message + " (line #${instructionPointer+1})")
             if(!ignoreErrors) {
                 println("Program is finished")
+                addLineToErrLog("Program is finished")
                 isFinished = true
                 return
             }
@@ -105,6 +132,7 @@ class Environment {
             catch(e : Exception)
             {
                 println(e.message)
+                addLineToErrLog(e.message + " (line #${instructionPointer+1})")
                 isFinished = true
                 return
             }
@@ -114,9 +142,9 @@ class Environment {
 
     fun getVariables() : HashMap<String, Int>
     {
-        println("Variables list:")
+        addLineToExecutionLog("Variables list:")
         variables.forEach{
-            println("name: ${it.key} -> value: ${it.value}")
+            addLineToExecutionLog("name: ${it.key} -> value: ${it.value}")
         }
         return variables
     }
@@ -126,12 +154,16 @@ class Environment {
 
         while(instructionPointer < instructions.size)
         {
+            if(isFinished)
+                return
+            
             try{
                 executeNext()
             }
             catch(e : Exception)
             {
-                println(e.message)
+                println(e.message + " (line #${instructionPointer+1})")
+                addLineToErrLog(e.message + " (line #${instructionPointer+1})")
                 isFinished = true
                 return
             }
@@ -143,7 +175,7 @@ class Environment {
         return if(isFinished)
             "Program is finished"
         else
-            instructions[instructionPointer] + " (line #${instructionPointer+1})"
+            instructions[instructionPointer].trim() + " (line #${instructionPointer+1})"
     }
 
     private fun parseFuncMap()
@@ -160,29 +192,33 @@ class Environment {
         }
     }
 
-    fun getCallTrace() : String
+    fun getCallTrace() : Stack<Int>
     {
         for(i in 0 until callStack.size)
         {
             if(callStack[i] == -1)
             {
-                println("From the Void -> main")
+                addLineToExecutionLog("From the Void -> main")
             }
             else {
-                println("-> ${instructions[callStack[i]].trim()} (line #${callStack[i]})")
+                addLineToExecutionLog("-> ${instructions[callStack[i]].trim()} (line #${callStack[i]})")
             }
         }
-        return ""
+        return callStack
     }
 
     private fun callMain()
     {
-        val mainStrNum = resolveFunction("main")
-                ?: // ERROR MAIN NOT FOUND
-                throw Exception("Can't find entry point for program. Fatal error.")
+        try {
+            val mainStrNum = resolveFunction("main") ?: -1
 
-        instructionPointer = mainStrNum+1
-        callStack.push(-1)
+            instructionPointer = mainStrNum+1
+            callStack.push(-1)
+        }
+        catch(e : Exception)
+        {
+            throw Exception("Can't find entry point for program. Fatal error.")
+        }
     }
 
     fun callFunction(identifier : String) {
@@ -239,8 +275,7 @@ class Environment {
         val firstToken = lexer.getNextToken()
         if(firstToken.type != TokenType.KEYWORD)
         {
-            Exception("Expected [KEYWORD], but here is ${firstToken.type}")
-            return
+            throw Exception("Expected [KEYWORD], but here is ${firstToken.type}")
         }
         else
         {

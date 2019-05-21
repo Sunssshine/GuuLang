@@ -1,20 +1,19 @@
 package com.example.demo.view
 
-import com.example.demo.app.Styles
 import javafx.beans.property.SimpleBooleanProperty
 import javafx.scene.control.Label
 import javafx.scene.control.TextArea
-import javafx.scene.control.TextField
 import javafx.scene.layout.Priority
 import javafx.scene.paint.Color
+import javafx.scene.text.FontWeight
 import tools.Environment
-import tools.ExpressionParser
-import tools.Lexer
 import tornadofx.*
 
-class MainView : View("Hello TornadoFX") {
+class MainView : View("Gu_u Lang") {
 
     var textArea: TextArea by singleAssign()
+    var errorsTextArea: TextArea by singleAssign()
+    var outputTextArea: TextArea by singleAssign()
     var currStr: Label by singleAssign()
 
 
@@ -23,106 +22,148 @@ class MainView : View("Hello TornadoFX") {
 
 
 
+    fun updateOutputViews()
+    {
+        errorsTextArea.text = environment.getErrLog()
+        outputTextArea.text = environment.getExecLog()
+        currStr.text = environment.getCurrentInstruction()
+    }
+
     lateinit var environment : Environment
 
-    override val root = vbox {
-        minHeight = 200.0
-        borderpane{
+    override val root = hbox{
+        vbox {
+            minHeight = 200.0
+            borderpane{
 
-            vboxConstraints {
-                marginLeft = 20.0
-                marginRight = 20.0
+                vboxConstraints {
+                    marginLeft = 20.0
+                    marginRight = 20.0
+                }
+                left = button("Execute") {
+                    textFill = Color.BLACK
+
+                    style{
+                        backgroundColor += Color.LIMEGREEN
+                    }
+
+                    action {
+                        println("Start executing")
+
+                        environment = Environment(
+                                textArea.text,
+                                isDebugMode.value,
+                                isIgnoreErrors.value
+                        )
+
+                        updateOutputViews()
+
+                    }
+                }
+                right = hbox{
+                    checkbox("Debug", isDebugMode) {}
+
+                    checkbox("Ignore errors", isIgnoreErrors) {}
+
+                    button("Stack trace") {
+                        style{
+                            textFill = Color.WHITE
+                            backgroundColor += Color.PURPLE
+                        }
+
+                        action {
+                            environment.getCallTrace()
+                            updateOutputViews()
+                        }
+                    }
+                    button("Variables") {
+                        style{
+                            textFill = Color.WHITE
+                            backgroundColor += Color.PURPLE
+                        }
+
+                        action {
+                            environment.getVariables()
+                            updateOutputViews()
+                        }
+                    }
+                    button("Step into") {
+                        style{
+                            textFill = Color.WHITE
+                            backgroundColor += Color.PURPLE
+                        }
+
+                        action {
+                            environment.executeStepInto()
+                            updateOutputViews()
+                        }
+                    }
+                    button("Step over") {
+                        style{
+                            textFill = Color.WHITE
+                            backgroundColor += Color.PURPLE
+                        }
+
+                        action {
+                            environment.executeStepOver()
+                            updateOutputViews()
+                        }
+                    }
+                }
+
             }
-            left = button("Execute") {
-                textFill = Color.BLACK
 
+
+            textArea = textarea("Type memo here") {
+                vgrow = Priority.ALWAYS
+                vboxConstraints {
+                    marginLeft = 20.0
+                    marginRight = 20.0
+                }
+
+
+
+            }
+
+            currStr = label {
+                text = "Here will be next instruction"
                 style{
-                    backgroundColor += Color.LIMEGREEN
+                    backgroundColor+=Color.RED
+                    padding = box(10.px)
+                    fontSize = 20.px
+                    fontWeight = FontWeight.BOLD
                 }
-
-                action {
-                    println("Start executing")
-
-                    environment = Environment(
-                            textArea.text,
-                            isDebugMode.value,
-                            isIgnoreErrors.value
-                    )
-                    currStr.text = environment.getCurrentInstruction()
-
+                vboxConstraints {
+                    marginLeft = 20.0
+                    marginBottom = 20.0
                 }
             }
-            right = hbox{
-                checkbox("Debug", isDebugMode) {}
-
-                checkbox("Ignore errors", isIgnoreErrors) {}
-
-                button("Stack trace") {
-                    style{
-                        textFill = Color.WHITE
-                        backgroundColor += Color.PURPLE
-                    }
-
-                    action {
-                        environment.getCallTrace()
-                    }
-                }
-                button("Variables") {
-                    style{
-                        textFill = Color.WHITE
-                        backgroundColor += Color.PURPLE
-                    }
-
-                    action {
-                        environment.getVariables()
-                    }
-                }
-                button("Step into") {
-                    style{
-                        textFill = Color.WHITE
-                        backgroundColor += Color.PURPLE
-                    }
-
-                    action {
-                        environment.executeStepInto()
-                        currStr.text = environment.getCurrentInstruction()
-                    }
-                }
-                button("Step over") {
-                    style{
-                        textFill = Color.WHITE
-                        backgroundColor += Color.PURPLE
-                    }
-
-                    action {
-                        environment.executeStepOver()
-                        currStr.text = environment.getCurrentInstruction()
-                    }
-                }
-            }
-
         }
-
-
-        textArea = textarea("Type memo here") {
-            vgrow = Priority.ALWAYS
-            vboxConstraints {
-                marginLeft = 20.0
-                marginRight = 20.0
+        vbox {
+            label{
+                text = "Output"
+            }
+            outputTextArea = textarea{
+                vgrow = Priority.ALWAYS
+                isEditable = false
+                vboxConstraints {
+                    marginTop = 5.0
+                    marginRight = 20.0
+                    marginBottom = 5.0
+                }
             }
 
-
-
-        }
-
-        currStr = label {
-            text = "Here will be current str which debugger on"
-            style{
-                backgroundColor+=Color.RED
+            label{
+                text = "Errors"
             }
-            vboxConstraints {
-                marginLeft = 20.0
-                marginBottom = 20.0
+            errorsTextArea = textarea{
+                vgrow = Priority.ALWAYS
+                isEditable = false
+                vboxConstraints {
+                    marginRight = 20.0
+                    marginTop = 5.0
+                    marginBottom = 20.0
+                }
             }
         }
     }
