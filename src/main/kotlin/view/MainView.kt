@@ -1,4 +1,4 @@
-package com.example.demo.view
+package view
 
 import javafx.beans.property.SimpleBooleanProperty
 import javafx.scene.control.Alert
@@ -46,6 +46,7 @@ class MainView : View("Gu_u Lang") {
 
                     style{
                         backgroundColor += Color.LIMEGREEN
+                        borderColor += box(Color.BLACK)
                     }
 
                     action {
@@ -70,6 +71,7 @@ class MainView : View("Gu_u Lang") {
                         style{
                             textFill = Color.WHITE
                             backgroundColor += Color.PURPLE
+                            borderColor += box(Color.BLACK)
                         }
 
                         action {
@@ -87,6 +89,7 @@ class MainView : View("Gu_u Lang") {
                         style{
                             textFill = Color.WHITE
                             backgroundColor += Color.PURPLE
+                            borderColor += box(Color.BLACK)
                         }
 
                         action {
@@ -105,6 +108,7 @@ class MainView : View("Gu_u Lang") {
                         style{
                             textFill = Color.WHITE
                             backgroundColor += Color.PURPLE
+                            borderColor += box(Color.BLACK)
                         }
 
                         action {
@@ -123,6 +127,7 @@ class MainView : View("Gu_u Lang") {
                         style{
                             textFill = Color.WHITE
                             backgroundColor += Color.PURPLE
+                            borderColor += box(Color.BLACK)
                         }
 
                         action {
@@ -141,7 +146,21 @@ class MainView : View("Gu_u Lang") {
             }
 
 
-            textArea = textarea("Type memo here") {
+            textArea = textarea("sub hello\n" +
+                    "    print somevar\n" +
+                    "    set somevar 42\n" +
+                    "    print somevar\n" +
+                    "    print wtf\n" +
+                    "\n" +
+                    "sub main\n" +
+                    "    set somevar 13\n" +
+                    "    call hello\n" +
+                    "    set smth 422\n" +
+                    "    print 1337\n" +
+                    "    call wtf\n" +
+                    "\n" +
+                    "sub wtf\n" +
+                    "    call hello") {
                 vgrow = Priority.ALWAYS
                 vboxConstraints {
                     marginLeft = 20.0
