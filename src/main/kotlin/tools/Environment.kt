@@ -15,14 +15,15 @@ class Environment {
 
     private var instructionPointer = 0
 
-    private val instructions : List<String>
+    private val instructions : MutableList<String>
 
     private var isFinished = false
 
     private val ignoreErrors: Boolean
 
     constructor(sourceCode: String, isDebug : Boolean = true, ignoreErrors : Boolean = true) {
-        this.instructions = sourceCode.split('\n').toList()
+        this.instructions = sourceCode.split('\n').toMutableList()
+        this.instructions.add("sub @reserved_end_ptr") // I have about 30 min for resoling this bug so don't blame me
 
         this.ignoreErrors = ignoreErrors
 
@@ -238,6 +239,11 @@ class Environment {
     private fun returnFromCurrFunction()
     {
         instructionPointer = callStack.pop()
+
+        if(callStack.empty())
+        {
+            isFinished = true
+        }
     }
 
     fun setVariable(identifier : String, value : Int)
