@@ -1,6 +1,7 @@
 package com.example.demo.view
 
 import com.example.demo.app.Styles
+import javafx.beans.property.SimpleBooleanProperty
 import javafx.scene.control.Label
 import javafx.scene.control.TextArea
 import javafx.scene.control.TextField
@@ -15,6 +16,12 @@ class MainView : View("Hello TornadoFX") {
 
     var textArea: TextArea by singleAssign()
     var currStr: Label by singleAssign()
+
+
+    val isDebugMode = SimpleBooleanProperty()
+    val isIgnoreErrors = SimpleBooleanProperty()
+
+
 
     lateinit var environment : Environment
 
@@ -35,14 +42,21 @@ class MainView : View("Hello TornadoFX") {
 
                 action {
                     println("Start executing")
-                    println(textArea.text)
 
-                    environment = Environment(textArea.text)
+                    environment = Environment(
+                            textArea.text,
+                            isDebugMode.value,
+                            isIgnoreErrors.value
+                    )
                     currStr.text = environment.getCurrentInstruction()
 
                 }
             }
             right = hbox{
+                checkbox("Debug", isDebugMode) {}
+
+                checkbox("Ignore errors", isIgnoreErrors) {}
+
                 button("Stack trace") {
                     style{
                         textFill = Color.WHITE
@@ -70,7 +84,7 @@ class MainView : View("Hello TornadoFX") {
                     }
 
                     action {
-                        environment.executeNext()
+                        environment.executeStepInto()
                         currStr.text = environment.getCurrentInstruction()
                     }
                 }

@@ -8,35 +8,91 @@ class Environment {
 
     private var variables = hashMapOf<String, Int>()   // var name -> var value
     private var functions = hashMapOf<String, Int>()   // fun name -> fun str
+    private var callStack = Stack<Int>()
 
     private var instructionPointer = 0
 
-    private var callStack = Stack<Int>()
-
     private val instructions : List<String>
 
-    constructor(sourceCode: String) {
+    private var isFinished = false
+
+    private val ignoreErrors: Boolean
+
+    constructor(sourceCode: String, isDebug : Boolean = true, ignoreErrors : Boolean = true) {
         this.instructions = sourceCode.split('\n').toList()
-        parseFuncMap()
-        callMain()
-        // execute() if not debug
+
+        this.ignoreErrors = ignoreErrors
+
+        try {
+            parseFuncMap()
+            callMain()
+            skipEmptyLines()
+        }
+        catch(e : Exception)
+        {
+            println(e.message + " (line #${instructionPointer+1})")
+            isFinished = true
+            return
+        }
+
+        if(!isDebug)
+            executeAll()
     }
 
-    fun executeNext()
+    fun executeStepInto()
     {
-        if(instructionPointer >= instructions.size)
-            throw Throwable("Reach end of program")
-
-        while(instructions[instructionPointer].isEmpty()) {
-            instructionPointer++
+        try{
+            executeNext()
         }
-        handlersMatcher(
-                Lexer(
-                instructions[instructionPointer],
-                instructionPointer
-                )
-        )
+        catch (e : Exception)
+        {
+            println(e.message)
+            isFinished = true
+            return
+        }
+    }
+
+    private fun tryIncInstructionPointer()
+    {
         instructionPointer++
+        if(instructionPointer >= instructions.size)
+            throw Exception("Reach end of program")
+    }
+
+    private fun executeNext()
+    {
+        if(isFinished)
+            throw Exception("Program already finished")
+
+        try {
+            handlersMatcher(
+                    Lexer(
+                            instructions[instructionPointer],
+                            instructionPointer
+                    )
+            )
+        }
+        catch(e : Exception)
+        {
+            println(e.message + " (line #${instructionPointer+1})")
+            if(!ignoreErrors) {
+                println("Program is finished")
+                isFinished = true
+                return
+            }
+        }
+
+        tryIncInstructionPointer()
+        skipEmptyLines()
+
+    }
+
+    private fun skipEmptyLines()
+    {
+        while(instructions[instructionPointer].isEmpty())
+        {
+            tryIncInstructionPointer()
+        }
     }
 
     fun executeStepOver()
@@ -48,7 +104,8 @@ class Environment {
             }
             catch(e : Exception)
             {
-                println(e)
+                println(e.message)
+                isFinished = true
                 return
             }
         }
@@ -69,28 +126,37 @@ class Environment {
 
         while(instructionPointer < instructions.size)
         {
-            executeNext()
+            try{
+                executeNext()
+            }
+            catch(e : Exception)
+            {
+                println(e.message)
+                isFinished = true
+                return
+            }
         }
     }
 
     fun getCurrentInstruction() : String
     {
-        return instructions[instructionPointer] + " (line #${instructionPointer+1})"
+        return if(isFinished)
+            "Program is finished"
+        else
+            instructions[instructionPointer] + " (line #${instructionPointer+1})"
     }
 
-    fun parseFuncMap()
+    private fun parseFuncMap()
     {
-        var strCounter = 0
-        instructions.forEach {
-            if(it.isNotEmpty())
+        for(strCounter in 0 until instructions.size) {
+            if(instructions[strCounter].isNotEmpty())
             {
-                val lexer = Lexer(it, strCounter)
+                val lexer = Lexer(instructions[strCounter], strCounter)
                 if(lexer.getNextToken().value == "sub")
                 {
-                    subHandler(lexer.getNextToken(), lexer.getStringNum())
+                    subHandler(lexer.getNextToken(), lexer.getStringNum(), this)
                 }
             }
-            strCounter++
         }
     }
 
@@ -100,7 +166,7 @@ class Environment {
         {
             if(callStack[i] == -1)
             {
-                println("From nowhere to main")
+                println("From the Void -> main")
             }
             else {
                 println("-> ${instructions[callStack[i]].trim()} (line #${callStack[i]})")
@@ -109,21 +175,11 @@ class Environment {
         return ""
     }
 
-    fun setVariable(identifier : String, value : Int)
-    {
-        variables[identifier] = value
-    }
-
-    fun callMain()
+    private fun callMain()
     {
         val mainStrNum = resolveFunction("main")
-
-        if (mainStrNum == null)
-        {
-            // ERROR FUN NOT FOUND
-            println("Can't find entry point for program. Fatal error.")
-            return
-        }
+                ?: // ERROR MAIN NOT FOUND
+                throw Exception("Can't find entry point for program. Fatal error.")
 
         instructionPointer = mainStrNum+1
         callStack.push(-1)
@@ -143,98 +199,47 @@ class Environment {
         instructionPointer = funStrNum
     }
 
-    fun resolveVariable(identifier : String) : Int?
-    {
-        return variables[identifier]
-    }
-
-    fun tryAddFunction(identifier : String, stringNumber : Int) : Boolean
-    {
-        if(functions.containsKey(identifier))
-            return false
-
-        functions[identifier] = stringNumber
-        return true
-    }
-
-    fun resolveFunction(identifier : String) : Int?
-    {
-        return functions[identifier]
-    }
-
-    fun returnFromCurrFunction()
+    private fun returnFromCurrFunction()
     {
         instructionPointer = callStack.pop()
     }
 
-    fun printHandler(argument : Token)
+    fun setVariable(identifier : String, value : Int)
     {
-        when(argument.type)
-        {
-            TokenType.IDENTIFIER->{
-                println(
-                        this.resolveVariable(argument.value)
-                )
-            }
-
-            TokenType.VALUE->{println(argument.value)}
-            else->{
-                println("Expected [IDENTIFIER] or [VALUE] but here is [${argument.type}]")
-            }// can't handle error
-        }
+        variables[identifier] = value
     }
 
-    fun callHandler(argument : Token)
+    fun resolveVariable(identifier : String) : Int?
     {
-        when(argument.type)
-        {
-            TokenType.IDENTIFIER->{
-                callFunction(argument.value)
-            }//resolve fun identifier
-            else->{
-                println("Expected [IDENTIFIER] but here is [${argument.type}]")
-            }// can't handle error
-        }
-
-        println("call handler")
-    }
-
-    fun subHandler(identifier : Token, strNumber : Int)
-    {
-        when(identifier.type)
-        {
-            TokenType.IDENTIFIER->{
-                println(this.tryAddFunction(identifier.value, strNumber))
-            }
-            else->{
-                println("Expected [IDENTIFIER] but here is [${identifier.type}]")
-            } // can't handle error
-        }
-
-        println("sub handler")
-    }
-
-    fun setHandler(identifier : Token, value : Token)
-    {
-        if((identifier.type == TokenType.IDENTIFIER) &&
-                value.type == TokenType.VALUE)
-        {
-            this.setVariable(identifier.value, value.value.toInt())
-        }
+        if(variables.containsKey(identifier))
+            return variables[identifier]
         else
-        {
-            println("Expected [IDENTIFIER, VALUE] but here is [${identifier.type}, ${value.type}]")
-        }
-
-        println("set handler")
+            throw Exception("Can't resolve variable [$identifier]")
     }
 
-    fun handlersMatcher(lexer: Lexer)
+    fun resolveFunction(identifier : String) : Int?
+    {
+        if(functions.containsKey(identifier))
+            return functions[identifier]
+        else
+            throw Exception("Can't resolve function call [$identifier]")
+    }
+
+    fun addFunction(identifier : String, stringNumber : Int)
+    {
+        if(functions.containsKey(identifier))
+            throw Exception("Can't add function [$identifier] - it's already exist")
+        else
+            functions[identifier] = stringNumber
+    }
+
+
+    private fun handlersMatcher(lexer: Lexer)
     {
         val firstToken = lexer.getNextToken()
         if(firstToken.type != TokenType.KEYWORD)
         {
-            println("Expected [KEYWORD], but here is ${firstToken.type}")
+            Exception("Expected [KEYWORD], but here is ${firstToken.type}")
             return
         }
         else
@@ -242,15 +247,15 @@ class Environment {
             when(firstToken.value)
             {
                 // TODO EXTRA ARGS HANDLE
-                "print" ->  printHandler(lexer.getNextToken())
-                "set"   ->  setHandler(lexer.getNextToken(), lexer.getNextToken())
-                "call"  ->  callHandler(lexer.getNextToken())
+                "print" ->  printHandler(lexer.getNextToken(), this)
+                "set"   ->  setHandler(lexer.getNextToken(), lexer.getNextToken(), this)
+                "call"  ->  callHandler(lexer.getNextToken(), this)
                 "sub"   ->  {
                     returnFromCurrFunction()
                     return
                 }
                 else    ->  {
-                    println("Here is keyword without handler!")
+                    Exception("Here is [KEYWORD] : [${firstToken.value}] without handler!")
                     return
                 }
             }
@@ -258,13 +263,15 @@ class Environment {
 
         if(lexer.getTokensCount() > 0)
         {
-            println("Extra tokens ignored: ")
+            var errorStr = "Extra tokens ignored: "
             var token = lexer.getNextToken()
             while(token.type != TokenType.EOL)
             {
-                println("${token.type} - ${token.value}")
+                errorStr +="\n${token.type} - ${token.value}"
                 token = lexer.getNextToken()
             }
+
+            throw Exception(errorStr)
         }
     }
 }
