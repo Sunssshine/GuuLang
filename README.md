@@ -14,6 +14,7 @@
 // В корневой директории проекта
 * gradle build
 * gradle jar
+* (optional) gradle test
 * Запустить полученный .jar файл, который будет находиться в папке ./build/libs
 
 ### P.S.: В директории, на всякий случай, в директории builds находится собранный .jar файл, но я надеюсь до этого не дойдёт :)
@@ -63,24 +64,24 @@
 ---
 
 # Пример программы на языке Guu
-sub hello
-    print somevar
-    set somevar 42
-    print somevar
-    print wtf
-
-sub main
-    set somevar 13
-    call hello
-    set smth 422
-    print 1337
-    call wtf
-
-sub wtf
-    call hello
+sub hello&nbsp
+    print somevar&nbsp
+    set somevar 42&nbsp
+    print somevar&nbsp
+    print wtf&nbsp
+&nbsp
+sub main&nbsp
+    set somevar 13&nbsp
+    call hello&nbsp
+    set smth 422&nbsp
+    print 1337&nbsp
+    call wtf&nbsp
+&nbsp
+sub wtf&nbsp
+    call hello&nbsp
 
 # Известные проблемы
 * Рекурсия работает слишком хорошо, нужно запускать выполнение в корутине, но я не успел :с
 * По окончанию выполнения программы переменные и стек вызовов всё ещё доступны для получения из среды
 * Интерфейс абсолютно не адаптивный (Спешка + Отсутствие опыта в JavaFX, TornadoFX)
-* Отсутствие тестов
+* Тесты не покрывают кейсы проверки валидности получения Stack trace и variables, у меня не хватило времени, и я не уверен можно ли вносить изменения после отправки ссылки на репозиторий, поэтому оставлю так, прошу прощения за это.
