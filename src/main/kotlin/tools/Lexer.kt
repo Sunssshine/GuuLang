@@ -4,11 +4,13 @@ class Lexer {
 
     private val keywords = listOf("print", "sub", "set", "call")
     private var tokens = mutableListOf<Token>()
+    private val stringNum : Int
 
 
-    constructor(expression : String)
+    constructor(expression : String, stringNum : Int)
     {
         tokenize(expression)
+        this.stringNum = stringNum
     }
 
     fun getNextToken() : Token
@@ -55,6 +57,11 @@ class Lexer {
     fun getTokensCount() : Int
     {
         return tokens.size
+    }
+
+    fun getStringNum() : Int
+    {
+        return stringNum
     }
 
 

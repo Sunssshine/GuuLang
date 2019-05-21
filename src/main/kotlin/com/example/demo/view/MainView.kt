@@ -1,9 +1,12 @@
 package com.example.demo.view
 
 import com.example.demo.app.Styles
+import javafx.scene.control.Label
 import javafx.scene.control.TextArea
 import javafx.scene.control.TextField
+import javafx.scene.layout.Priority
 import javafx.scene.paint.Color
+import tools.Environment
 import tools.ExpressionParser
 import tools.Lexer
 import tornadofx.*
@@ -11,28 +14,104 @@ import tornadofx.*
 class MainView : View("Hello TornadoFX") {
 
     var textArea: TextArea by singleAssign()
+    var currStr: Label by singleAssign()
+
+    lateinit var environment : Environment
 
     override val root = vbox {
-        label(title) {
-            addClass(Styles.heading)
-        }
-        button("Press Me") {
-            textFill = Color.RED
-            action {
-                println("Button pressed!")
-                println(textArea.text)
-                textArea.text.split('\n').forEach {
-                    if(it.isNotEmpty())
-                    {
-                        Lexer(it).tokenize(it)
+        minHeight = 200.0
+        borderpane{
+
+            vboxConstraints {
+                marginLeft = 20.0
+                marginRight = 20.0
+            }
+            left = button("Execute") {
+                textFill = Color.BLACK
+
+                style{
+                    backgroundColor += Color.LIMEGREEN
+                }
+
+                action {
+                    println("Start executing")
+                    println(textArea.text)
+
+                    environment = Environment(textArea.text)
+                    currStr.text = environment.getCurrentInstruction()
+
+                }
+            }
+            right = hbox{
+                button("Stack trace") {
+                    style{
+                        textFill = Color.WHITE
+                        backgroundColor += Color.PURPLE
+                    }
+
+                    action {
+                        environment.getCallTrace()
                     }
                 }
-                println("Expression parse done")
+                button("Variables") {
+                    style{
+                        textFill = Color.WHITE
+                        backgroundColor += Color.PURPLE
+                    }
+
+                    action {
+                        environment.getVariables()
+                    }
+                }
+                button("Step into") {
+                    style{
+                        textFill = Color.WHITE
+                        backgroundColor += Color.PURPLE
+                    }
+
+                    action {
+                        environment.executeNext()
+                        currStr.text = environment.getCurrentInstruction()
+                    }
+                }
+                button("Step over") {
+                    style{
+                        textFill = Color.WHITE
+                        backgroundColor += Color.PURPLE
+                    }
+
+                    action {
+                        environment.executeStepOver()
+                        currStr.text = environment.getCurrentInstruction()
+                    }
+                }
             }
+
         }
 
+
         textArea = textarea("Type memo here") {
-            selectAll()
+            vgrow = Priority.ALWAYS
+            vboxConstraints {
+                marginLeft = 20.0
+                marginRight = 20.0
+            }
+
+
+
+        }
+
+        currStr = label {
+            text = "Here will be current str which debugger on"
+            style{
+                backgroundColor+=Color.RED
+            }
+            vboxConstraints {
+                marginLeft = 20.0
+                marginBottom = 20.0
+            }
         }
     }
+
+
 }
