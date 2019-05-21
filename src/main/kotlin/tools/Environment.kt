@@ -156,7 +156,7 @@ class Environment {
         {
             if(isFinished)
                 return
-            
+
             try{
                 executeNext()
             }

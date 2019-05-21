@@ -1,6 +1,7 @@
 package com.example.demo.view
 
 import javafx.beans.property.SimpleBooleanProperty
+import javafx.scene.control.Alert
 import javafx.scene.control.Label
 import javafx.scene.control.TextArea
 import javafx.scene.layout.Priority
@@ -61,9 +62,9 @@ class MainView : View("Gu_u Lang") {
                     }
                 }
                 right = hbox{
-                    checkbox("Debug", isDebugMode) {}
+                    checkbox("Debug", isDebugMode) {isSelected = true}
 
-                    checkbox("Ignore errors", isIgnoreErrors) {}
+                    checkbox("Ignore errors", isIgnoreErrors) {isSelected = true}
 
                     button("Stack trace") {
                         style{
@@ -72,8 +73,14 @@ class MainView : View("Gu_u Lang") {
                         }
 
                         action {
-                            environment.getCallTrace()
-                            updateOutputViews()
+                            if(::environment.isInitialized) {
+                                environment.getCallTrace()
+                                updateOutputViews()
+                            }
+                            else
+                            {
+                                alert(Alert.AlertType.WARNING, "You should initialize environment before debug it","(Press Execute after coding is done)")
+                            }
                         }
                     }
                     button("Variables") {
@@ -83,8 +90,15 @@ class MainView : View("Gu_u Lang") {
                         }
 
                         action {
-                            environment.getVariables()
-                            updateOutputViews()
+
+                            if(::environment.isInitialized) {
+                                environment.getVariables()
+                                updateOutputViews()
+                            }
+                            else
+                            {
+                                alert(Alert.AlertType.WARNING, "You should initialize environment before debug it","(Press Execute after coding is done)")
+                            }
                         }
                     }
                     button("Step into") {
@@ -94,8 +108,15 @@ class MainView : View("Gu_u Lang") {
                         }
 
                         action {
-                            environment.executeStepInto()
-                            updateOutputViews()
+
+                            if(::environment.isInitialized) {
+                                environment.executeStepInto()
+                                updateOutputViews()
+                            }
+                            else
+                            {
+                                alert(Alert.AlertType.WARNING, "You should initialize environment before debug it","(Press Execute after coding is done)")
+                            }
                         }
                     }
                     button("Step over") {
@@ -105,8 +126,14 @@ class MainView : View("Gu_u Lang") {
                         }
 
                         action {
-                            environment.executeStepOver()
-                            updateOutputViews()
+                            if(::environment.isInitialized) {
+                                environment.executeStepOver()
+                                updateOutputViews()
+                            }
+                            else
+                            {
+                                alert(Alert.AlertType.WARNING, "You should initialize environment before debug it","(Press Execute after coding is done)")
+                            }
                         }
                     }
                 }
